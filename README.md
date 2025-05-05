@@ -1,42 +1,170 @@
-<p align="center"><a href="https://hypervel.org" target="_blank"><img src="https://hypervel.org/logo.png" width="400"></a></p>
+# Hyper-App Documentation
 
-<p align="center">
-<a href="https://github.com/hypervel/hypervel/actions"><img src="https://github.com/hypervel/hypervel/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/hypervel/framework"><img src="https://img.shields.io/packagist/dt/hypervel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/hypervel/hypervel"><img src="https://img.shields.io/packagist/v/hypervel/hypervel" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/hypervel/hypervel"><img src="https://img.shields.io/packagist/l/hypervel/hypervel" alt="License"></a>
-</p>
+This is a Hypervel-based application running on Docker with PHP and Swoole. The project uses Laravel-like artisan commands and is configured to run efficiently in a containerized environment. This README provides instructions for setting up, running, and managing the application.
 
-## Introduction
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Setup Instructions](#setup-instructions)
+- [Running the Application](#running-the-application)
+- [Database Migration](#database-migration)
+- [Environment Configuration](#environment-configuration)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-**Hypervel** is a Laravel-style PHP framework with native coroutine support for ultra-high performance.
+## Prerequisites
+- **Docker** and **Docker Compose** installed on your system.
+- PHP 8.3 or compatible version (handled by the Docker image).
+- Composer for dependency management (installed in the container).
+- A `.env` file configured with your environment variables (use `.env.example` as a template).
+- Optional: MySQL or PostgreSQL if using a database (configured in `docker-compose.yml`).
 
-Hypervel ports many core components from Laravel while maintaining familiar usage patterns, making it instantly accessible to Laravel developers. The framework combines the elegant and expressive development experience of Laravel with the powerful performance benefits of coroutine-based programming. If you're a Laravel developer, you'll feel right at home with this framework, requiring minimal learning curve.
+## Project Structure
+```
+hyper-app/
+├── app/                   # Application logic and models
+├── bootstrap/             # Bootstrap and initialization files
+├── config/                # Configuration files
+├── database/              # Database migrations and seeds
+├── public/                # Publicly accessible files
+├── resources/             # Views, assets, and other resources
+├── routes/                # Route definitions
+├── storage/               # Storage for logs, cache, etc.
+├── tests/                 # Test suites
+├── vendor/                # Composer dependencies
+├── .env                   # Environment configuration
+├── .env.example           # Example environment file
+├── composer.json          # Composer dependencies and scripts
+├── docker-compose.yml     # Docker Compose configuration
+├── artisan                # Artisan CLI tool
+├── README.md              # This file
+```
 
-This is an ideal choice for building microservices, API gateways, and high-concurrency applications where traditional PHP frameworks often encounter performance constraints.
+## Setup Instructions
+1. **Clone the Repository**:
+   ```bash
+   git clone <repository-url> hyper-app
+   cd hyper-app
+   ```
 
-## Why Hypervel?
+2. **Copy Environment File**:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` to configure your database, application settings, and other environment variables.
 
-While Laravel Octane impressively enhances your Laravel application's performance, it's crucial to understand the nature of modern web applications. In most cases, the majority of latency stems from I/O operations, such as file operations, database queries, and API requests.
+3. **Build and Start Docker Containers**:
+   ```bash
+   docker-compose up -d
+   ```
+   This starts the Hypervel application on port `9501`. If using a database, uncomment the relevant database service in `docker-compose.yml` and update `.env` accordingly.
 
-However, Laravel doesn't support coroutines - the entire framework is designed for a blocking I/O environment. Applications heavily dependent on I/O operations will still face performance bottlenecks. Consider this scenario:
+4. **Install Dependencies**:
+   ```bash
+   docker-compose exec app composer install
+   ```
 
-Imagine building an AI-powered chatbot where each conversation API takes 3-5 seconds to respond. With 10 workers in Laravel Octane receiving 10 concurrent requests, all workers would be blocked until these requests complete.
+## Running the Application
+- **Development Mode**:
+  The `docker-compose.yml` is configured to run `php artisan watch` for hot-reloading:
+  ```bash
+  docker-compose up -d
+  ```
+  Access the application at `http://localhost:9501`.
 
-> You can see [benchmark comparison](https://hypervel.org/docs/introduction.html#benchmark) between Laravel Octane and Hypervel
+- **Production Mode**:
+  Modify the `command` in `docker-compose.yml` to:
+  ```yaml
+  command: php artisan start
+  ```
+  Then restart the containers:
+  ```bash
+  docker-compose down && docker-compose up -d
+  ```
 
-Even with Laravel Octane's improvements, your application's concurrent request handling capacity remains constrained by I/O operation duration. Hypervel addresses this limitation through coroutines, enabling efficient handling of concurrent I/O operations without blocking workers. This approach significantly enhances performance and concurrency for I/O-intensive applications.
+## Database Migration
+- **Run Migrations**:
+  ```bash
+  docker-compose exec app php artisan migrate
+  ```
+  This applies pending migrations. Example output:
+  ```
+  Migrating: 2023_08_03_000000_create_users_table
+  Migrated:  2023_08_03_000000_create_users_table
+  ```
+
+- **Fresh Migration** (drops all tables and re-runs migrations):
+  ```bash
+  docker-compose exec app php artisan migrate:fresh
+  ```
+  Example output:
+  ```
+  Dropped all tables successfully.
+  [INFO] Migration table created successfully.
+  Migrating: 2023_08_03_000000_create_users_table
+  Migrated:  2023_08_03_000000_create_users_table
+  ```
+
+- **Database Configuration**:
+  Ensure your `.env` file includes the correct database settings, e.g.:
+  ```
+  DB_CONNECTION=mysql
+  DB_HOST=db
+  DB_PORT=3306
+  DB_DATABASE=hypervel
+  DB_USERNAME=hypervel
+  DB_PASSWORD=secret
+  ```
+  Update `docker-compose.yml` to include the database service if not already enabled.
+
+## Environment Configuration
+- The `.env` file is loaded automatically by Hypervel.
+- Key variables to configure:
+  - `APP_NAME`: Application name.
+  - `APP_ENV`: Environment (`local`, `production`, etc.).
+  - `APP_KEY`: Run `docker-compose exec app php artisan key:generate` to set this.
+  - Database credentials (see above).
+- Avoid hardcoding sensitive values in `docker-compose.yml`. Use `.env` instead.
+
+## Troubleshooting
+- **Permission Issues**:
+  If you encounter volume permission issues (common with SELinux), add `:Z` to the volume mount in `docker-compose.yml`:
+  ```yaml
+  volumes:
+    - .:/data/project:Z
+  ```
+  Alternatively, run the container as root (not recommended for production):
+  ```yaml
+  app:
+    privileged: true
+    user: root
+  ```
+
+- **Nothing to Migrate**:
+  If `php artisan migrate` shows "Nothing to migrate," ensure migration files exist in `database/migrations/`.
+
+- **Container Logs**:
+  Check logs for errors:
+  ```bash
+  docker-compose logs app
+  ```
+
+- **Database Connection Issues**:
+  Verify the database service is running and the `.env` credentials match the `docker-compose.yml` configuration.
+
+## Contributing
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/YourFeature`).
+3. Commit changes (`git commit -m 'Add YourFeature'`).
+4. Push to the branch (`git push origin feature/YourFeature`).
+5. Open a pull request.
+
+## License
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 > See [this issue](https://github.com/laravel/octane/issues/765) for more discussions.
 
 ## Documentation
 
 [https://hypervel.org/docs](https://hypervel.org/docs)
-
-Hypervel provides comprehensive and user-friendly documentation that allows you to quickly get started. From this documentation, you can learn how to use various components in Hypervel and understand the differences between this framework and Laravel.
-
-> Most of the content in this documentation is referenced from the official Laravel documentation. We appreciate the Laravel community's contributions.
-
-## License
-
-The Hypervel framework is open-sourced software licensed under the [MIT](https://opensource.org/licenses/MIT) license.

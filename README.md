@@ -65,6 +65,8 @@ hyper-app/
    docker-compose exec app composer install
    ```
 
+- touch file atau buat file database.sqlite di /database/database.sqlite
+
 ## Running the Application
 - **Development Mode**:
   The `docker-compose.yml` is configured to run `php artisan watch` for hot-reloading:
@@ -160,7 +162,8 @@ hyper-app/
 4. Push to the branch (`git push origin feature/YourFeature`).
 5. Open a pull request.
 
-- sudo chown -R anone:anone storage runtime
+- sudo chown -R userpc:userpc storage runtime
+userpc misal ugun:ugun
 
 ## 🐳 Syntax Docker
 

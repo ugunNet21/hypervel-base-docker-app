@@ -160,6 +160,46 @@ hyper-app/
 4. Push to the branch (`git push origin feature/YourFeature`).
 5. Open a pull request.
 
+- sudo chown -R anone:anone storage runtime
+
+## 🐳 Syntax Docker
+
+### 🔍 Perintah Umum
+
+- `docker ps -a`  
+  Melihat semua container (baik yang sedang berjalan maupun yang sudah berhenti)
+
+- `docker images`  
+  Melihat daftar image yang ada di sistem
+
+- `docker image ls`  
+  Alternatif lain untuk melihat image (sama seperti `docker images`)
+
+- `docker system df`  
+  Melihat penggunaan disk oleh Docker (image, container, volume)
+
+- `docker image prune`  
+  Menghapus image yang tidak digunakan oleh container mana pun (dangling)
+
+- `docker system prune`  
+  Menghapus semua data yang tidak digunakan (container stopped, network, image dangling)
+
+- `docker system prune -a --volumes`  
+  Menghapus semua image yang tidak digunakan, termasuk volume tidak terpakai
+- `docker-compose exec app php artisan migrate:fresh`
+  Menjalankan migration dan fresh
+
+---
+
+### ⚙️ Perintah `docker-compose`
+
+| Perintah                 | Fungsi                                                                |
+|--------------------------|-----------------------------------------------------------------------|
+| `docker-compose build`   | Membangun ulang image berdasarkan Dockerfile                          |
+| `docker-compose up`      | Menjalankan container dari image (membuat jika belum ada)             |
+| `docker-compose down`    | Menghentikan container & menghapus container serta jaringan terkait   |
+
+
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 

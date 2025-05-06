@@ -129,6 +129,12 @@ hyper-app/
   - Database credentials (see above).
 - Avoid hardcoding sensitive values in `docker-compose.yml`. Use `.env` instead.
 
+- `cp .env.docker.dev .env`
+  `docker compose up -d`
+
+- `cp .env.docker.prod .env`
+  `docker compose up -d --build`
+
 ## Troubleshooting
 - **Permission Issues**:
   If you encounter volume permission issues (common with SELinux), add `:Z` to the volume mount in `docker-compose.yml`:
